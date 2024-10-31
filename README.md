@@ -11,7 +11,7 @@ Reversere engineer an garage door remote key fob
 * Is it possibe to open grage door with an flipper
 
 ## Reverse engineering
-Universal radio Hacker (URH) recored and try to decode the data 
+Universal radio Hacker (URH) recored and try to decode the data from one [keypress](urh_alutech.complex16s) 
 * It's 868,35MHz ASK
 * It's rotating the message, so a simple clone is not enough 
 * There is an preaamble of 6 a in hex and the message is repeated 3 times for each keypres
