@@ -13,7 +13,7 @@ Reversere engineer an garage door remote key fob
 ## Datasheets 
 | No       | Description | IC           |
 | ---      | ---         |---           |
-| U2       | CPU         | [Microchip HCS301](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/21143C.pdf)  |
+|        | Probably         | [Microchip HCS301](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/21143C.pdf)  |
 
 ## Reverse engineering
 Universal radio Hacker (URH) recored and try to decode the data from one [keypress](urh_alutech.complex16s) 
