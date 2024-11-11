@@ -29,5 +29,6 @@ Aftear looking at datasheet and the recorded data
 * A 1 is coded as ~370 us short signal (1x)
 * A 0 is coded as ~760 us long signal (2x)
 * And it's whole signal is ~ 1123 us  (3x)
+* Noticed previous version of chip [HCS200](https://github.com/merbanan/rtl_433/blob/master/src/devices/hcs200.c) is here, but the code fails for some reason as 868.35 mhs picks up 72 bits instead for 66
 
 ![AT-4N-868](urh_AT_4N_868.png)
