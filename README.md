@@ -1,34 +1,39 @@
 # ALUTECH AT-4N-868
-Reversere engineer an garage door remote key fob 
 
-![AT-4N-868](AT_4N_868.png) 
+Reverse engineering a garage door remote key fob.
 
+![AT-4N-868](AT_4N_868.png)
 
-## Hypotheis
-* Can this radio protocoll be decoded in rtl_433 and is there any vulnerabilities 
-* Create and Flex decoder alutech.conf file based on examples from [rtl_433 conf](https://github.com/merbanan/rtl_433/tree/master/conf)
-* Create and C version and possible merge to [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices)
-* Is it possibe to open grage door with an flipper
+## Hypothesis
 
-## Datasheets 
-| No       | Description | IC           |
-| ---      | ---         |---           |
-|        | Probably         | [Microchip HCS301](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/21143C.pdf)  |
+* Can this radio protocol be decoded in rtl_433, and are there any vulnerabilities?
+* Create a flex decoder `alutech.conf` file based on examples from [rtl_433 conf](https://github.com/merbanan/rtl_433/tree/master/conf).
+* Create a C version and possibly merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
+* Is it possible to open the garage door with a Flipper?
+
+## Datasheets
+
+| No  | Description | IC                                                                                                                            |
+| --- | ---         | ---                                                                                                                           |
+|     | Probably    | [Microchip HCS301](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/21143C.pdf)   |
 
 ## Reverse engineering
-Universal radio Hacker (URH) recored and try to decode the data from one [keypress](urh_alutech.complex16s) 
-* It's 868,35MHz ASK alias OOK in URH 
-* It's a rolling message, so a simple clone is not enough 
-* There is an preaamble of 6 a in hex and the message is repeated 3 times for each keypres
-* An Pause threshold of 10 under modulation is enough to get preamble and message to be in one message
-* ~~Converting from URH to RTL Flex decoder using this as~~ [inspiration](https://github.com/klohner/klohner.github.io/blob/master/SDR/Decoding/Example_2019-01-24/README.md)
 
-Aftear looking at datasheet and the recorded data
-* There is ~9350 us with 12 1 bit ( ~389 us)
-* A break for ~4150 us
-* A 1 is coded as ~370 us short signal (1x)
-* A 0 is coded as ~760 us long signal (2x)
-* And it's whole signal is ~ 1123 us  (3x)
-* Noticed previous version of chip [HCS200](https://github.com/merbanan/rtl_433/blob/master/src/devices/hcs200.c) is here, but the code fails for some reason as 868.35 mhs picks up 72 bits instead for 66
+Universal Radio Hacker (URH) recorded and tried to decode the data from one [keypress](urh_alutech.complex16s).
+
+* It is 868.35 MHz ASK (a.k.a. OOK in URH).
+* It uses a rolling code, so a simple clone is not enough.
+* There is a preamble of 6 `a` in hex, and the message is repeated 3 times per keypress.
+* A pause threshold of 10 under modulation is enough to capture the preamble and message in a single message.
+* ~~Converting from URH to an RTL flex decoder using this as~~ [inspiration](https://github.com/klohner/klohner.github.io/blob/master/SDR/Decoding/Example_2019-01-24/README.md).
+
+After looking at the datasheet and the recorded data:
+
+* There is a ~9350 µs window with 12 one-bits (~389 µs each).
+* Followed by a ~4150 µs break.
+* A `1` is encoded as a ~370 µs short signal (1x).
+* A `0` is encoded as a ~760 µs long signal (2x).
+* The full symbol period is ~1123 µs (3x).
+* A previous version of the chip, [HCS200](https://github.com/merbanan/rtl_433/blob/master/src/devices/hcs200.c), has a decoder in rtl_433, but it fails here because at 868.35 MHz it picks up 72 bits instead of 66.
 
 ![AT-4N-868](urh_AT_4N_868.png)
