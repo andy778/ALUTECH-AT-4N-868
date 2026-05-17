@@ -9,7 +9,12 @@ Reverse engineering a garage door remote key fob.
 * Can this radio protocol be decoded in rtl_433, and are there any vulnerabilities?
 * Create a flex decoder `alutech.conf` file based on examples from [rtl_433 conf](https://github.com/merbanan/rtl_433/tree/master/conf).
 * Create a C version and possibly merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
-* Is it possible to open the garage door with a Flipper?
+* Is it possible to open the garage door with a Flipper? -> Probably not as this is quite advanced rotating algorithm
+
+## Steps
+* Decode Sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)  
+* Add samples to tests/Microchip merge [rtl_433 tests](https://github.com/merbanan/rtl_433_tests).
+* Create a C version and possibly merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
 
 ## Datasheets
 
