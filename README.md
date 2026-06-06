@@ -11,7 +11,7 @@ Reverse engineering a garage door remote key fob.
 * Create a C version and possibly merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
 * Is it possible to open the garage door with a Flipper? -> Probably not as this is quite advanced rotating algorithm
 * I assume this is a Microchip HCS301, based on looking arround but hard to say as the chip have no markings
- * Bought a new one from Aliexpress and here the U1 is Arm Cortex-M0+ and that means it's contains some own software 
+  * Bought a new one from Aliexpress and here the U1 is Arm Cortex-M0+ and that means it's contains some own software 
 
   
 ## Steps
@@ -43,7 +43,8 @@ After looking at the datasheet and the recorded data:
 * A `1` is encoded as a ~370 µs short signal (1x).
 * A `0` is encoded as a ~760 µs long signal (2x).
 * The full symbol period is ~1123 µs (3x).
-* A previous version of the chip, [HCS200](https://github.com/merbanan/rtl_433/blob/master/src/devices/hcs200.c), has a decoder in rtl_433, but it fails here because at 868.35 MHz it picks up 72 bits instead of 66.
+* A previous version of the chip, [HCS200](https://github.com/merbanan/rtl_433/blob/master/src/devices/hcs200.c), has a decoder in rtl_433, but it fails here because at 868.35 MHz it picks up 72 bits instead of 66?
+* The new Arm Cortex-M0+ repeats the message 6 times instead of 3 
 
 ## Images
 ![front](front.jpg)
