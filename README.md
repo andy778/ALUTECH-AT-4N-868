@@ -45,4 +45,7 @@ After looking at the datasheet and the recorded data:
 * The full symbol period is ~1123 µs (3x).
 * A previous version of the chip, [HCS200](https://github.com/merbanan/rtl_433/blob/master/src/devices/hcs200.c), has a decoder in rtl_433, but it fails here because at 868.35 MHz it picks up 72 bits instead of 66.
 
-![AT-4N-868](urh_AT_4N_868.png)
+## Images
+![front](front.jpg)
+![back](back.jpg)
+![back_new](back_new.jpg)
