@@ -11,7 +11,7 @@ Reverse engineering a garage door remote key fob.
 * Create a C version and possibly merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
 * Is it possible to open the garage door with a Flipper? -> Probably not as this is quite advanced rotating algorithm
 * I assume this is a Microchip HCS301, based on looking arround but hard to say as the chip have no markings
- * Bought a new one from ALiexpress and here the U1 is Arm Cortex-M0+ and that means it's contains some own hardware 
+ * Bought a new one from Aliexpress and here the U1 is Arm Cortex-M0+ and that means it's contains some own software 
 
   
 ## Steps
