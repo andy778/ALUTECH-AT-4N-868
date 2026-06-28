@@ -11,10 +11,10 @@
 /**
 Alutech AT-4N-868 garage door / gate remote (rolling code).
 
-This is NOT a Microchip HCS200/HCS301 (KeeLoq) device. The transmitter is
-built around a general-purpose Arm Cortex-M0+ MCU (PUYA PY32F002A) running
-a proprietary rolling-code firmware. The protocol was reverse engineered by
-the Flipper Zero project (lib/subghz/protocols/alutech_at_4n.c).
+The transmitter is built around a general-purpose Arm Cortex-M0+ MCU
+(PUYA PY32F002A) running a proprietary rolling-code firmware. The protocol
+was reverse engineered by the Flipper Zero project
+(lib/subghz/protocols/alutech_at_4n.c).
 
 Modulation: ASK/OOK, PWM.
 Frequency:  868.35 MHz (some units 433.92 MHz).
