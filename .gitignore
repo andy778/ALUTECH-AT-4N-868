@@ -1,0 +1,12 @@
+# Decrypt-script scratch (research/flipper/decrypt_keystore.sh)
+ct.bin
+pt.bin
+
+# Firmware dumps (docs/firmware-extraction.md) — your own hardware, keep local
+*.bin
+at4n_flash.bin
+
+# Editor / OS noise
+*.swp
+*~
+.DS_Store
