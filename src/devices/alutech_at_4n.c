@@ -54,6 +54,86 @@ src/CMakeLists.txt / Makefile.am.
 */
 
 #include "decoder.h"
+#include <stdlib.h>
+
+/*
+Optional decryption of the inner fields (serial, counter, button).
+
+The 64-bit payload is encrypted with an XTEA-style cipher keyed by six 32-bit
+per-manufacturer constants (the "rainbow table"). These constants are the same
+for the whole AT-4N product line, but are NOT shipped with rtl_433 - the
+upstream project does not embed manufacturer keys.
+
+To enable serial/button/counter output, pass the six values at runtime as a
+decoder parameter (extract them from your own device, e.g. a Flipper Zero's
+decrypted alutech_at_4n keystore):
+
+    rtl_433 -R 321:9E3779B9,01234567,89ABCDEF,FEDCBA98,11223344,55667788
+
+Values are 32-bit hex, in keystore order, separated by any non-hex character
+(comma/colon/space). Without the parameter the decoder emits encrypted-only
+output. Algorithm and field layout ported from the Flipper Zero project
+(lib/subghz/protocols/alutech_at_4n.c).
+*/
+typedef struct {
+    int have_key;
+    uint32_t magic[6];
+} alutech_ctx_t;
+
+static int alutech_is_hex(char c)
+{
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
+/// Parse up to 6 hex constants from arg into magic[6]; returns the count parsed.
+static int alutech_parse_key(char const *arg, uint32_t magic[6])
+{
+    int n = 0;
+    while (n < 6 && arg && *arg) {
+        while (*arg && !alutech_is_hex(*arg))
+            arg++; // skip separators
+        if (!*arg)
+            break;
+        char *end  = NULL;
+        magic[n++] = (uint32_t)strtoul(arg, &end, 16);
+        arg        = end;
+    }
+    return n;
+}
+
+static uint8_t alutech_decrypt_data_crc(uint8_t b)
+{
+    uint8_t crc = b;
+    for (int i = 0; i < 8; ++i)
+        crc = (crc & 0x80) ? (uint8_t)((crc << 1) ^ 0x31) : (uint8_t)(crc << 1);
+    return (uint8_t)~crc;
+}
+
+/// Decrypt the 8 payload bytes p[8] into out[8] using the rainbow table magic[6].
+static void alutech_decrypt(uint32_t const magic[6], uint8_t const *p, uint8_t *out)
+{
+    uint32_t d1 = ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | p[3];
+    uint32_t d2 = ((uint32_t)p[4] << 24) | ((uint32_t)p[5] << 16) | ((uint32_t)p[6] << 8) | p[7];
+    uint32_t d3;
+    uint32_t sum   = magic[0];
+    unsigned guard = 0;
+
+    do {
+        d2 -= (magic[1] + (d1 << 4)) ^ (magic[2] + (d1 >> 5)) ^ (d1 + sum);
+        d3 = d2 + sum;
+        sum += magic[3];
+        d1 -= (magic[4] + (d2 << 4)) ^ (magic[5] + (d2 >> 5)) ^ d3;
+    } while (sum != 0 && ++guard < (1u << 20));
+
+    out[0] = (uint8_t)(d1 >> 24);
+    out[1] = (uint8_t)(d1 >> 16);
+    out[2] = (uint8_t)(d1 >> 8);
+    out[3] = (uint8_t)d1;
+    out[4] = (uint8_t)(d2 >> 24);
+    out[5] = (uint8_t)(d2 >> 16);
+    out[6] = (uint8_t)(d2 >> 8);
+    out[7] = (uint8_t)d2;
+}
 
 static int alutech_at_4n_decode(r_device *decoder, bitbuffer_t *bitbuffer)
 {
@@ -90,10 +170,39 @@ static int alutech_at_4n_decode(r_device *decoder, bitbuffer_t *bitbuffer)
         snprintf(code_str, sizeof(code_str), "%02X%02X%02X%02X%02X%02X%02X%02X",
                 b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
 
+        // Optional decryption (requires the rainbow table above). The decrypted
+        // block carries its own check byte, so we only trust the fields when it
+        // verifies - a wrong key simply falls back to encrypted-only output.
+        alutech_ctx_t *ctx = decoder_user_data(decoder);
+        uint8_t dec[8];
+        int decoded = 0;
+        if (ctx && ctx->have_key) {
+            alutech_decrypt(ctx->magic, p, dec);
+            decoded = dec[7] == alutech_decrypt_data_crc(dec[1]);
+        }
+        uint32_t serial  = 0;
+        uint16_t counter = 0;
+        int button       = 0;
+        if (decoded) {
+            serial  = (uint32_t)dec[3] | ((uint32_t)dec[4] << 8) | ((uint32_t)dec[5] << 16) | ((uint32_t)dec[6] << 24);
+            counter = (uint16_t)(dec[1] | (dec[2] << 8));
+            switch (dec[0]) {
+            case 0xff: button = 1; break;
+            case 0x11: button = 2; break;
+            case 0x22: button = 3; break;
+            case 0x33: button = 4; break;
+            case 0x44: button = 5; break;
+            default: button = 0; break;
+            }
+        }
+
         /* clang-format off */
         data_t *data = data_make(
                 "model",        "",             DATA_STRING, "Alutech-AT4N",
+                "id",           "Serial",       DATA_COND,   decoded, DATA_FORMAT, "%08X", DATA_INT, serial,
                 "code",         "Encrypted",    DATA_STRING, code_str,
+                "button",       "Button",       DATA_COND,   decoded, DATA_INT, button,
+                "counter",      "Counter",      DATA_COND,   decoded, DATA_INT, counter,
                 "mic",          "Integrity",    DATA_STRING, "CRC",
                 NULL);
         /* clang-format on */
@@ -107,10 +216,28 @@ static int alutech_at_4n_decode(r_device *decoder, bitbuffer_t *bitbuffer)
 
 static char const *const output_fields[] = {
         "model",
+        "id",
         "code",
+        "button",
+        "counter",
         "mic",
         NULL,
 };
+
+r_device const alutech_at_4n;
+
+static r_device *alutech_create(char *arg)
+{
+    r_device *r_dev = decoder_create(&alutech_at_4n, sizeof(alutech_ctx_t));
+    if (!r_dev)
+        return NULL; // NOTE: returns NULL on alloc failure to suppress protocol
+
+    alutech_ctx_t *ctx = decoder_user_data(r_dev);
+    if (alutech_parse_key(arg, ctx->magic) == 6)
+        ctx->have_key = 1;
+
+    return r_dev;
+}
 
 r_device const alutech_at_4n = {
         .name        = "Alutech AT-4N-868 garage/gate remote (rolling code)",
@@ -121,5 +248,6 @@ r_device const alutech_at_4n = {
         .reset_limit = 4400,
         .tolerance   = 160, // us
         .decode_fn   = &alutech_at_4n_decode,
+        .create_fn   = &alutech_create,
         .fields      = output_fields,
 };
