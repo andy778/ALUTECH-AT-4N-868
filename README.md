@@ -8,7 +8,7 @@ Reverse engineering a garage door remote key fob.
 
 * Can this radio protocol be decoded in rtl_433, and are there any vulnerabilities?
 * Create a flex decoder `alutech.conf` file based on examples from [rtl_433 conf](https://github.com/merbanan/rtl_433/tree/master/conf).
-* Create a C version and possibly merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
+* Create a C version and merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices). → Done: the decoder lives in the [`andy778/rtl_433` fork](https://github.com/andy778/rtl_433/blob/master/src/devices/alutech_at_4n.c), pending upstream submission.
 * Is it possible to open the garage door with a Flipper? -> Flipper can **decode/read** the frame (it has a built-in `alutech_at_4n` protocol), but the rolling code cannot be cloned/replayed without the manufacturer rainbow table, so it cannot open the door.
 * **This is *not* a Microchip HCS301 / KeeLoq.** The chip has no markings, but the protocol is a proprietary "Alutech AT-4N" scheme.
   * A new unit bought from Aliexpress has U1 = Arm Cortex-M0+ (PUYA PY32F002A), i.e. it runs custom firmware — consistent with a bespoke (non-KeeLoq) rolling code.
@@ -18,7 +18,7 @@ Reverse engineering a garage door remote key fob.
 ## Steps
 [ ] Decode Sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
 [ ] Add samples to tests/Microchip merge [rtl_433 tests](https://github.com/merbanan/rtl_433_tests)
-[ ] Create a C version and possibly merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices)
+[x] Create a C version and merge it into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices) — done in the [`andy778/rtl_433` fork](https://github.com/andy778/rtl_433/commit/5f0a1d6cedf5a73256d8e7e582e52790eb35f7bb), pending upstream
 
 ## Datasheets
 
@@ -69,9 +69,12 @@ Decoded frame layout (after decryption), per the Flipper source:
 
 ## rtl_433 decoder
 
-A C decoder now lives at [`src/devices/alutech_at_4n.c`](src/devices/alutech_at_4n.c)
-(submitted upstream to [rtl_433](https://github.com/merbanan/rtl_433)). It registers
-as protocol **321**.
+The maintained C decoder lives in a fork of rtl_433 —
+[`src/devices/alutech_at_4n.c`](https://github.com/andy778/rtl_433/blob/master/src/devices/alutech_at_4n.c)
+([commit `5f0a1d6`](https://github.com/andy778/rtl_433/commit/5f0a1d6cedf5a73256d8e7e582e52790eb35f7bb)) —
+and is headed for upstream [rtl_433](https://github.com/merbanan/rtl_433). It is
+not vendored here to avoid drift. Once built it registers as protocol **321**.
+The protocol write-up below documents what that decoder implements.
 
 ### Frame format
 
