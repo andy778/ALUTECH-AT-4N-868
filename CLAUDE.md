@@ -22,10 +22,13 @@ and has been ruled out:
 
 ## Key Files
 
-- **`src/devices/alutech_at_4n.c`** — the C rtl_433 device decoder (primary
-  technical artifact). Validates the CRC and emits the encrypted payload; has an
-  optional decryption path that takes the six magic constants at runtime.
-- **`README.md`** — full protocol write-up, frame layout, and usage.
+- **The C rtl_433 decoder is NOT vendored here.** It is maintained in a fork of
+  rtl_433 (`andy778/rtl_433`, `src/devices/alutech_at_4n.c`, commit `5f0a1d6`),
+  headed for upstream merge. It validates the CRC and emits the encrypted
+  payload, with an optional decryption path that takes the six magic constants at
+  runtime. Do not re-add a copy to this repo — link to the fork to avoid drift.
+- **`README.md`** — full protocol write-up, frame layout, and usage (the primary
+  technical artifact in this repo).
 - **`docs/firmware-extraction.md`** — how to dump the PY32 firmware over SWD (JP1
   header) from your own hardware.
 - **`research/flipper/`** — the (public, AES-encrypted) Flipper keystore asset and
@@ -38,9 +41,10 @@ and has been ruled out:
 
 ## Working with the Decoder
 
-The C decoder is built into rtl_433 (add to `src/devices/`, declare in
-`include/rtl_433_devices.h`, list in `src/CMakeLists.txt` / `Makefile.am`). Once
-built it registers as protocol **321**.
+The decoder lives in the `andy778/rtl_433` fork. To build it, check out that
+fork and build rtl_433 normally (the device is already declared in
+`include/rtl_433_devices.h` and listed in `src/CMakeLists.txt` / `Makefile.am`
+there). Once built it registers as protocol **321**.
 
 ```bash
 # Live capture (encrypted output only, no secret needed):
@@ -108,9 +112,8 @@ their own hardware).
 
 ## Next Steps / Open TODOs
 
-- Land the optional-decryption feature for `alutech_at_4n.c` on its branch (it is
-  currently only in a git stash — rescue it).
-- Submit the decoder upstream to
+- Submit the fork's decoder (`andy778/rtl_433`, includes the optional-decryption
+  path) upstream to
   [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
 - Decode the 433.92 MHz captures (`g001/g002`) and confirm the CRC there too.
 - Behavioral replay / rolling-code resync analysis with the Flipper Zero.
