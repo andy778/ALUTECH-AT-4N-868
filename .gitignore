@@ -6,6 +6,10 @@ pt.bin
 *.bin
 at4n_flash.bin
 
+# Raw RF captures — kept local, not committed (the g012/g025 868 MHz captures
+# already tracked from before this rule stay tracked; new .cu8 files are ignored).
+*.cu8
+
 # Editor / OS noise
 *.swp
 *~
