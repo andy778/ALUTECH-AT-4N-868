@@ -6,6 +6,10 @@ pt.bin
 *.bin
 at4n_flash.bin
 
+# Raw RF/IQ captures — kept local, not committed (large binary, not diffable).
+*.cu8
+*.complex16s
+
 # Editor / OS noise
 *.swp
 *~
