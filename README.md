@@ -30,7 +30,10 @@ Reverse engineering a garage door remote key fob.
 
 ## Reverse engineering
 
-Universal Radio Hacker (URH) recorded and tried to decode the data from one [keypress](urh_alutech.complex16s).
+Universal Radio Hacker (URH) recorded and tried to decode the data from one
+keypress (`urh_alutech.complex16s`). Raw IQ/RF captures are not tracked in git
+(large binaries, kept local) — see [Key Files](CLAUDE.md#key-files) for the full
+list.
 
 * It is 868.35 MHz ASK (a.k.a. OOK in URH).
 * It uses a rolling code, so a simple clone is not enough.
