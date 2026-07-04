@@ -35,9 +35,12 @@ and has been ruled out:
   a helper script that decrypts it *given* the AES key.
 - **`alutech.conf`** — early rtl_433 flex-decoder experiment. Superseded by the C
   decoder; kept for history and may not reflect the verified parameters.
-- **`urh_alutech.complex16s`** — raw IQ capture (URH, complex16s).
+- **`urh_alutech.complex16s`** — raw IQ capture (URH, complex16s). Not tracked in
+  git (`.gitignore`'d, large binary) — kept locally.
 - **`g012_868M_1000k.cu8`** / **`g025_868M_1000k.cu8`** — 868 MHz captures used to
   verify the CRC. **`g001/g002-BTN1_433.92M_250k.cu8`** — 433.92 MHz captures.
+  None of the `.cu8` captures are tracked in git either — regenerate with `rtl_433
+  -r <file> ...` locally, or re-capture with an SDR at the frequencies above.
 
 ## Working with the Decoder
 
