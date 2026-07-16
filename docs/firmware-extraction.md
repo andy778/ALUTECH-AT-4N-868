@@ -9,6 +9,9 @@ The transmitter is built around a **PUYA PY32F002A** — an Arm Cortex-M0+ MCU
 (marked `Puya` on U1). The firmware lives in on-chip flash at `0x08000000`
 (20 KB on this part). You read it out over the **SWD** debug port.
 
+Register addresses and behavior cited below ("RM §x.y") are from the official
+[PY32F002A Reference Manual V1.0](https://download.py32.org/ReferenceManual/en/PY32F002A%20Reference%20manual%20v1.0_EN.pdf).
+
 ## 1. Hardware you need
 
 | Item | Notes |
@@ -139,9 +142,32 @@ read32 0x08000000 16 (flash)                  -> "Error: memory transfer failed"
 
 The flash read specifically failing — not reading back as blank `0xFFFFFFFF`,
 but the transfer itself being rejected — while SRAM and core-register reads
-work fine, is the textbook signature of **RDP (read-out protection) being
-enabled**. The debug port is not disabled; only access to the flash address
-range is blocked.
+work fine, matches the PY32F002A reference manual §4.6.2 exactly: *"In debug
+mode... the main Flash memory cannot be accessed. In these modes, a bus error
+is generated for a read... access to the main Flash, and a hard fault
+interrupt is generated."* (RM, Table 4-8, Level 1 protection, debug-mode row).
+
+That alone is strong circumstantial evidence, but the option-byte word settles
+it directly rather than by inference. The RDP value itself lives at
+`0x1FFF0E80`, bits `[7:0]`, with its one's complement mirrored in bits
+`[23:16]` (RM §4.4.1, §4.8.6):
+
+```
+read32 0x1FFF0E80 4   -> 41FFBE00
+```
+
+Splitting that word: `RDP[7:0] = 0x00`, `~RDP[7:0] = 0xFF` — an exact
+complement pair, so the read is internally consistent (no `OPTVERR`
+corruption). Per RM Table 4-7, only the specific pair `RDP=0xAA / ~RDP=0x55`
+means Level 0 (protection inactive); any other value — `0x00`/`0xFF` included
+— means **Level 1: read protection is active**. This is the actual
+protection-level bit read directly from silicon, not inferred from the failed
+transfer above.
+
+For context, `read32 0x1FFF0000 4` (system memory / boot ROM base) returned
+`0x20000200` — a plausible Cortex-M initial stack pointer into the 3KB SRAM —
+confirming the debug link and general memory access are fully healthy; it is
+specifically main-flash access that RDP blocks.
 
 If you hit the same pattern, the SWD route is closed without invasive attacks
 (voltage glitching, decapping) which are out of scope here. Your options for
