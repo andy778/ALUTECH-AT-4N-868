@@ -227,3 +227,61 @@ That closes the loop with the
 [rtl_433 decoder](https://github.com/andy778/rtl_433/blob/master/src/devices/alutech_at_4n.c)
 (maintained in the `andy778/rtl_433` fork), whose optional decryption path
 takes exactly those six values as `-R 321:<m0>,<m1>,<m2>,<m3>,<m4>,<m5>`.
+
+## 8. SRAM search (negative result)
+
+Since RDP blocks flash but the debug port can still read **SRAM** (§6), it's
+worth asking whether the six magic constants ever get staged in RAM at
+runtime and could be recovered from a live snapshot instead.
+
+**Dumping SRAM at rest:**
+
+```bash
+sudo pyocd cmd -t py32f002ax5 -c "reset halt" -c "savemem 0x20000000 0xC00 sram_dump.bin"
+```
+
+A 3 KB dump (`0xC00`) on a production unit broke down into three zones:
+
+| Range | Content |
+|---|---|
+| `0x000–0x1BF` | Vector table copy + init data — real flash addresses, peripheral base addresses, small integers (low entropy, clearly structured) |
+| `0x1C0–0x4FF` | All zero — untouched SRAM |
+| `0x5A0–0xBFF` | Uniformly high entropy (~5.7–5.9 bits/byte) — everything *above* the reported initial stack pointer (`0x200005a0`), i.e. never zeroed, plausibly stale data from an earlier function call |
+
+That high-entropy region is the interesting candidate, but entropy alone
+can't distinguish leftover crypto material from ordinary SRAM power-on noise
+— they look statistically identical. Eyeballing isn't a real test.
+
+**Verification method:** every 4-byte-aligned 24-byte window in the dump
+(763 positions, then widened to unaligned offsets and both byte orders —
+6,098 total) was tried as a candidate six-constant set against the actual
+`alutech_decrypt` Feistel algorithm, run against **two independently
+verified real captured encrypted payloads** from this project
+(`ACFC7B07CA43D233`, `64E4071F84EB463B` — see [README](../README.md#rtl_433-decoder)).
+A candidate only counts if the internal check byte validates on **both**
+frames independently (a single frame alone has a 1-in-256 chance of a false
+positive from pure luck; requiring both drops that to ~1-in-65536). A cheap
+modular-arithmetic pre-filter (the cipher's round count must resolve to a
+small integer, since `magic[3]` is a delta-style constant with a bounded
+round trip) kept the search both fast and precise.
+
+**Result: 0 hits out of 6,098 candidate windows**, aligned and unaligned,
+both endiannesses.
+
+This specific static snapshot does not contain the six constants in a
+directly-recoverable form. Two explanations are equally plausible and this
+test can't distinguish them:
+
+1. The firmware reads the constants straight out of flash `.rodata` on each
+   round without ever staging a full copy in RAM — a resting snapshot would
+   never show it, live or not.
+2. It was staged in RAM at some point (there's evidence of recent interrupt
+   activity in the stack region) but got overwritten by later calls before
+   the dump was taken.
+
+Settling which would require catching it **live** — single-stepping or
+breakpointing the crypto routine during an actual keypress — which runs into
+the same wall RDP creates on purpose: you'd need to know where that routine
+lives in flash to set the breakpoint, and flash is exactly what's blocked.
+Treat this avenue as exhausted without a substantially more invasive effort
+(which is out of scope per this repo's [security boundary](../SECURITY.md)).
