@@ -126,9 +126,26 @@ the reset-handler address (`0x0800xxxx`) — a good quick sanity check.
 
 ## 6. If RDP is enabled
 
-If the part is read-protected, the SWD route is closed without invasive attacks
-(voltage glitching, decapping) which are out of scope here. In that case your
-options for studying the protocol are:
+**Confirmed on a production unit (2026-07-17):** with a working SWD link
+(pyOCD + Puya's `Puya.PY32F0xx_DFP`, `-t py32f002ax5`), the core halts and
+responds to debug commands normally, and general memory reads succeed —
+
+```
+reset halt                                    -> "Successfully halted device on reset"
+read32 0x20000000 4  (SRAM)                   -> 200005a0   (real data)
+read32 0xE000ED00 4  (Cortex-M CPUID)         -> 410cc601   (ARM, ARMv6-M, part 0xC60 = Cortex-M0+)
+read32 0x08000000 16 (flash)                  -> "Error: memory transfer failed"
+```
+
+The flash read specifically failing — not reading back as blank `0xFFFFFFFF`,
+but the transfer itself being rejected — while SRAM and core-register reads
+work fine, is the textbook signature of **RDP (read-out protection) being
+enabled**. The debug port is not disabled; only access to the flash address
+range is blocked.
+
+If you hit the same pattern, the SWD route is closed without invasive attacks
+(voltage glitching, decapping) which are out of scope here. Your options for
+studying the protocol are:
 
 - Capture and analyse the **RF** side, which is what the rest of this project
   does — you do not need the firmware to validate the frame, CRC, or observe the
