@@ -72,23 +72,41 @@ flash, and on many parts an attempt plus a level change will **mass-erase** the
 chip — so look, don't poke.
 
 **PY32 has no stock target support in either OpenOCD or pyOCD** — plan for
-that up front:
+that up front. The pyOCD route below is **verified end-to-end on a production
+unit**, using a generic "CMSIS-DAP simulator" probe clone (USB ID `c251:f001`,
+Keil CMSIS-DAP HID firmware, supports Cortex-M0/M3/M4/M7):
 
-- **pyOCD (recommended):** Puya publishes a `Puya.PY32F0xx_DFP` CMSIS-Pack
-  (from Puya's own PY32 SDK download page — it is not in pyOCD's default
-  online pack index, so `pyocd pack install` alone won't find it). Download
-  the `.pack` file, then pass it explicitly with `--pack`:
+- **pyOCD (recommended, verified working):** Puya's `Puya.PY32F0xx_DFP`
+  CMSIS-Pack is already in pyOCD's default online pack index as of this
+  writing (v1.2.8) — **no manual `.pack` download needed**, contrary to
+  earlier guidance here. Confirm the probe, find the pack, install it, then
+  connect:
 
   ```bash
-  pyocd list --targets --pack=Puya.PY32F0xx_DFP.1.1.0.pack   # confirm the exact target name, e.g. py32f002ax5
-  pyocd cmd --pack=Puya.PY32F0xx_DFP.1.1.0.pack -t py32f002ax5 \
-      -c "reset halt" -c "read32 0x08000000 16"
+  sudo pyocd list                                # confirm the probe is detected
+  sudo pyocd pack find PY32                      # confirms PY32F002Ax5 is indexed
+  sudo pyocd pack install PY32F002Ax5            # downloads + installs the pack
+  sudo pyocd list --targets | grep -i py32f002   # confirms py32f002ax5 is now available
+  sudo pyocd cmd -t py32f002ax5 -c "reset halt" -c "read32 0x08000000 16"
   ```
+
+  No `-f <freq>` clock override or `--pack=` path was needed once the pack was
+  installed — default clock speed worked fine on this probe/wiring.
+
+  `sudo` was required throughout on this specific probe — the stock
+  `/usr/lib/udev/rules.d/50-cmsis-dap.rules` allow-list covers several known
+  CMSIS-DAP vendor/product IDs but not this clone's `c251:f001`. For
+  passwordless access, add your own rule, e.g. in
+  `/etc/udev/rules.d/99-cmsis-dap-local.rules`:
+  ```
+  SUBSYSTEM=="usb", ATTR{idVendor}=="c251", ATTR{idProduct}=="f001", MODE:="0660", TAG+="uaccess"
+  ```
+  then `sudo udevadm control --reload && sudo udevadm trigger`.
 
   If that connects and returns real-looking code bytes (not all `00`/`FF`, and
   no fault/error), RDP is **disabled** — proceed to §5. If the connect fails,
-  or reads come back as a fault or all-zero/all-`FF`, RDP is likely
-  **enabled** (see §6).
+  or reads come back as a fault (`Error: memory transfer failed`) or
+  all-zero/all-`FF`, RDP is likely **enabled** (see §6).
 
 - **OpenOCD:** there is no `target/py32f0x.cfg` in stock OpenOCD — the naive
   `-f target/py32f0x.cfg` invocation you may see elsewhere will fail with
@@ -100,13 +118,31 @@ that up front:
   boilerplate) — unverified by this project, treat as a starting point to test
   yourself, not a known-good recipe.
 
+### Troubleshooting: VMware Workstation's USB arbitrator
+
+If VMware Workstation/Player is installed, its `vmware-usbarbitrator` service
+claims USB devices on plug-in for possible VM passthrough — including debug
+probes — and can repeatedly rebind or fully disconnect them mid-session. This
+shows up as a `hid-generic` bind/unbind loop in `journalctl`, ending in a
+`USB disconnect`, and can present as a flaky or failing SWD connection that
+has nothing to do with wiring. If your probe drops out or `pyocd list`
+intermittently sees nothing, stop the arbitrator for the session:
+
+```bash
+sudo systemctl stop vmware-usbarbitrator.service
+# ... do your debugging, replug the probe ...
+sudo systemctl start vmware-usbarbitrator.service   # when done
+```
+
+This blocks VM USB passthrough while stopped — restart it afterward if you
+need that for other VMs.
+
 ## 5. Dump the flash
 
 Once you can halt the core (§4), read the 20 KB flash region with pyOCD:
 
 ```bash
-pyocd cmd --pack=Puya.PY32F0xx_DFP.1.1.0.pack -t py32f002ax5 \
-    -c "reset halt" -c "savemem 0x08000000 0x5000 at4n_flash.bin"
+sudo pyocd cmd -t py32f002ax5 -c "reset halt" -c "savemem 0x08000000 0x5000 at4n_flash.bin"
 ```
 
 `0x5000` = 20480 bytes. Adjust if your part reports a different flash size.
