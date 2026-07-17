@@ -4,20 +4,33 @@ Reverse engineering a garage door remote key fob.
 
 ![AT-4N-868](AT_4N_868.png)
 
-## Hypothesis
+## Findings
 
-* Can this radio protocol be decoded in rtl_433, and are there vulnerabilities?
-* Create a flex decoder `alutech.conf` based on [rtl_433 conf](https://github.com/merbanan/rtl_433/tree/master/conf) examples.
-* Create a C version and merge into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices). → Done: lives in the [`andy778/rtl_433` fork](https://github.com/andy778/rtl_433/blob/master/src/devices/alutech_at_4n.c), pending upstream.
-* Open the garage door with a Flipper? Flipper can **decode/read** the frame (built-in `alutech_at_4n` protocol), but can't clone/replay it without the manufacturer rainbow table.
-* **Proprietary "Alutech AT-4N" scheme**, no IC markings.
-  * Unit from Aliexpress: U1 = Arm Cortex-M0+ (PUYA PY32F002A), custom firmware.
-  * Matches [Flipper's `alutech_at_4n.c`](https://github.com/flipperdevices/flipperzero-firmware/blob/dev/lib/subghz/protocols/alutech_at_4n.c) decoder: 72-bit frame, CRC-8 poly `0x31`, custom obfuscation + rainbow table.
+* **Protocol decoded.** Proprietary "Alutech AT-4N" scheme, no IC markings.
+  U1 = Arm Cortex-M0+ (PUYA PY32F002A), custom firmware. Matches
+  [Flipper's `alutech_at_4n.c`](https://github.com/flipperdevices/flipperzero-firmware/blob/dev/lib/subghz/protocols/alutech_at_4n.c):
+  72-bit frame, CRC-8 poly `0x31`, XTEA-style Feistel cipher.
+* **New keyfobs protect the rainbow table.** Read-out protection (RDP) is
+  enabled on production units — SWD can't read flash, so the six constants
+  can't be dumped. See [docs/firmware-extraction.md](docs/firmware-extraction.md).
+* **Same six constants across the whole AT-4N line** — not per-device. One
+  shared secret for the whole product line.
+* **Flipper Zero ships the table, AES-encrypted.** Decryptable only with
+  the AES key set during Flipper's own production (secure enclave) — not
+  derivable from the public keystore file alone.
+* **Flipper can decode/read a frame, not clone it** — no rainbow table, no
+  replay.
 
 ## Steps
-[ ] Decode sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
-[ ] Add samples to [rtl_433 tests](https://github.com/merbanan/rtl_433_tests)
-[x] Create a C version and merge into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices) — done in the [fork](https://github.com/andy778/rtl_433/commit/5f0a1d6cedf5a73256d8e7e582e52790eb35f7bb), pending upstream
+- [x] Decode the protocol
+- [x] Create a C rtl_433 decoder — done in the [fork](https://github.com/andy778/rtl_433/blob/master/src/devices/alutech_at_4n.c)
+- [ ] Submit the decoder upstream to [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices)
+- [x] Attempt firmware extraction over SWD — RDP confirmed enabled, blocked
+- [x] Search SRAM for the rainbow table — negative result
+- [ ] Decode 433.92 MHz captures (`g001`/`g002`), confirm CRC there too
+- [ ] Behavioral replay / rolling-code resync analysis with Flipper Zero
+- [ ] Decode sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
+- [ ] Add samples to [rtl_433 tests](https://github.com/merbanan/rtl_433_tests)
 
 ## Datasheets
 
