@@ -8,14 +8,9 @@ Hardware RE of the **ALUTECH AT-4N-868** garage door remote (4-button,
 868.35 MHz rolling code, some units 433.92 MHz). Goal: decode the protocol
 with rtl_433, understand the rolling code, check Flipper Zero compatibility.
 
-**Not a Microchip HCS301 / KeeLoq device** — ruled out:
-- U1 = PUYA PY32F002A, Arm Cortex-M0+, custom firmware, not a fixed-function
-  KeeLoq encoder.
-- Frame is 72 bits, not HCS200/300's 66 — why the existing rtl_433 `hcs200`
-  decoder never matched.
-- Matches Flipper's proprietary `alutech_at_4n` decoder: 72-bit frame,
-  CRC-8 poly `0x31`, XTEA-style Feistel cipher keyed by six per-manufacturer
-  constants.
+U1 = PUYA PY32F002A, Arm Cortex-M0+, custom firmware. Proprietary protocol,
+matches Flipper's `alutech_at_4n` decoder: 72-bit frame, CRC-8 poly `0x31`,
+XTEA-style Feistel cipher keyed by six per-manufacturer constants.
 
 Full protocol write-up, frame layout, and usage: [README.md](README.md).
 
