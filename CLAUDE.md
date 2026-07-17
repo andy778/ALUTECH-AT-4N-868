@@ -5,8 +5,8 @@ Guidance for Claude Code in this repo.
 ## Project
 
 Hardware RE of the **ALUTECH AT-4N-868** garage door remote (4-button,
-868.35 MHz rolling code, some units 433.92 MHz). Goal: decode the protocol
-with rtl_433, understand the rolling code, check Flipper Zero compatibility.
+868.35 MHz rolling code transmitter). Goal: decode the protocol with
+rtl_433, understand the rolling code, check Flipper Zero compatibility.
 
 U1 = PUYA PY32F002A, Arm Cortex-M0+, custom firmware. Proprietary protocol,
 matches Flipper's `alutech_at_4n` decoder: 72-bit frame, CRC-8 poly `0x31`,
@@ -63,6 +63,4 @@ remotes. User supplies constants they're entitled to (own hardware).
 ## Open TODOs
 
 - Submit fork's decoder upstream to [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
-- Decode a 433.92 MHz capture, confirm CRC — from a keyfob not paired to a
-  real garage door (see privacy note above).
 - Behavioral replay / resync analysis with Flipper Zero.

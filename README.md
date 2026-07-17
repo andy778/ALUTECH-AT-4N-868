@@ -29,9 +29,6 @@ Reverse engineering a garage door remote key fob.
 - [ ] Submit the decoder upstream to [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices)
 - [x] Attempt firmware extraction over SWD — RDP confirmed enabled, blocked
 - [x] Search SRAM for the rainbow table — negative result
-- [ ] Decode a 433.92 MHz capture, confirm CRC there too — only from a
-      keyfob not paired to a real garage door (decrypted captures reveal
-      the fob's serial number to anyone who later has the rainbow table)
 - [ ] Behavioral replay / rolling-code resync analysis with Flipper Zero
 - [ ] Decode sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
 - [ ] Add samples to [rtl_433 tests](https://github.com/merbanan/rtl_433_tests)
