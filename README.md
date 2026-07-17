@@ -6,8 +6,10 @@ Reverse engineering a garage door remote key fob.
 
 ## Findings
 
-* **Protocol decoded.** Proprietary "Alutech AT-4N" scheme, no IC markings.
-  U1 = Arm Cortex-M0+ (PUYA PY32F002A), custom firmware. Matches
+* **Protocol decoded.** Proprietary "Alutech AT-4N" scheme. Older units have
+  no IC markings; a newer unit from Aliexpress (also works with this garage
+  door) has U1 marked as the PUYA PY32F002A — the same Arm Cortex-M0+ chip
+  debugged over SWD in this repo. Matches
   [Flipper's `alutech_at_4n.c`](https://github.com/flipperdevices/flipperzero-firmware/blob/dev/lib/subghz/protocols/alutech_at_4n.c):
   72-bit frame, CRC-8 poly `0x31`, XTEA-style Feistel cipher.
 * **New keyfobs protect the rainbow table.** Read-out protection (RDP) is
@@ -27,7 +29,9 @@ Reverse engineering a garage door remote key fob.
 - [ ] Submit the decoder upstream to [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices)
 - [x] Attempt firmware extraction over SWD — RDP confirmed enabled, blocked
 - [x] Search SRAM for the rainbow table — negative result
-- [ ] Decode 433.92 MHz captures (`g001`/`g002`), confirm CRC there too
+- [ ] Decode a 433.92 MHz capture, confirm CRC there too — only from a
+      keyfob not paired to a real garage door (decrypted captures reveal
+      the fob's serial number to anyone who later has the rainbow table)
 - [ ] Behavioral replay / rolling-code resync analysis with Flipper Zero
 - [ ] Decode sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
 - [ ] Add samples to [rtl_433 tests](https://github.com/merbanan/rtl_433_tests)

@@ -26,9 +26,10 @@ Full protocol write-up, frame layout, and usage: [README.md](README.md).
 - **`alutech.conf`** — early flex-decoder experiment, superseded by the C
   decoder, may not match verified parameters.
 - **`urh_alutech.complex16s`**, **`g012_868M_1000k.cu8`**,
-  **`g025_868M_1000k.cu8`**, **`g001/g002-BTN1_433.92M_250k.cu8`** — raw
-  captures, not tracked in git. Regenerate with `rtl_433 -r <file> ...` or
-  re-capture.
+  **`g025_868M_1000k.cu8`** — raw captures, not tracked in git. Regenerate
+  with `rtl_433 -r <file> ...` or re-capture. **Only capture/commit from a
+  keyfob not paired to a real garage door** — a decrypted capture reveals
+  the fob's serial number to anyone who later obtains the rainbow table.
 
 ## Working with the Decoder
 
@@ -62,5 +63,6 @@ remotes. User supplies constants they're entitled to (own hardware).
 ## Open TODOs
 
 - Submit fork's decoder upstream to [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices).
-- Decode 433.92 MHz captures (`g001/g002`), confirm CRC.
+- Decode a 433.92 MHz capture, confirm CRC — from a keyfob not paired to a
+  real garage door (see privacy note above).
 - Behavioral replay / resync analysis with Flipper Zero.
