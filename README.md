@@ -28,6 +28,30 @@ Reverse engineering a garage door remote key fob.
 
 > ~~Microchip HCS301~~ — earlier assumption, now ruled out. The protocol is not KeeLoq (see below).
 
+## Power supply
+
+**The board and manual both specify a single CR2032 (3V), but the unit as
+delivered (Aliexpress) shipped with two CR2016 cells stacked in series** —
+confirmed with a multimeter across the battery holder: **6V**, not 3V. This
+is a mismatch from the documented spec, not a documented design choice.
+
+Mechanically it "works" because the holder is just a 20mm-diameter spring clip
+with two contacts (top/bottom) and no middle tap — it doesn't care whether
+you insert one 3.2mm-thick CR2032 or two 1.6mm CR2016s stacked in series
+(same total stack height), so nothing physically stops the wrong battery
+combination from being fitted.
+
+**Open question, not yet verified:** if the holder feeds the battery straight
+to the PY32F002A's VDD with no regulator in between (common in ultra-low-cost
+fobs, and plausible here since the part is only spec'd 3V by the manual), then
+6V would exceed the MCU's rated ~1.7–5.5V operating range — this could be an
+out-of-spec substitution by the seller/assembler rather than an intentional
+Alutech design, and potentially a reliability/longevity risk for the chip
+rather than a deliberate RF-power boost. Worth checking with a multimeter
+whether VDD (measurable via JP1 `V`, per
+[docs/firmware-extraction.md](docs/firmware-extraction.md)) actually sees the
+full 6V or a regulated-down rail before assuming either explanation.
+
 ## Reverse engineering
 
 Universal Radio Hacker (URH) recorded and tried to decode the data from one
