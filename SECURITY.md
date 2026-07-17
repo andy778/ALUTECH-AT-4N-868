@@ -1,41 +1,38 @@
 # Security Policy
 
-This is a hobby hardware-reverse-engineering project for the ALUTECH AT-4N-868
-garage/gate remote. The goal is to understand the RF protocol and rolling-code
-scheme on the maintainer's own hardware, not to build a tool for defeating
-other people's locks.
+Hobby hardware-RE project for the ALUTECH AT-4N-868 garage/gate remote.
+Goal: understand the RF protocol and rolling-code scheme on the
+maintainer's own hardware — not to defeat other people's locks.
 
-## Scope and boundary
+## Scope
 
-This repo documents and helps with:
+In scope:
 
-- Decoding and validating AT-4N-868 frames (CRC, frame layout) from RF captures.
+- Decoding/validating AT-4N-868 frames (CRC, frame layout) from RF captures.
 - Dumping firmware from **your own** PY32-based transmitter over SWD.
-- Generic, publicly documented crypto tooling (e.g. using `openssl` to decrypt
-  a keystore file, given a key you already hold).
-- Behavioral analysis of the rolling-code scheme (resync behavior, replay
-  windows) for defensive/educational purposes.
+- Generic crypto tooling (e.g. `openssl` to decrypt a keystore file, given a
+  key you already hold).
+- Behavioral analysis of the rolling-code scheme (resync, replay windows),
+  defensive/educational.
 
-It intentionally does **not** include, and contributions should not add:
+Out of scope, do not contribute:
 
-- The six per-manufacturer "magic" constants (the shared secret keying the
-  Feistel cipher) or any means of extracting Flipper Zero's secure-enclave AES
-  key. Either would let someone clone arbitrary AT-4N remotes, not just their
-  own.
-- Tooling aimed at mass scanning, jamming, or opening doors/gates that are not
+- The six per-manufacturer "magic" constants (the Feistel cipher's shared
+  secret), or any means of extracting Flipper Zero's secure-enclave AES key.
+  Either clones arbitrary AT-4N remotes, not just your own.
+- Tooling for mass scanning, jamming, or opening doors/gates that aren't
   yours.
 
-If you are entitled to the manufacturer constants (e.g. recovered them from
-your own hardware), that is out of scope for this repo to host or discuss in
-detail beyond the generic decrypt path already documented in the README.
+If you're entitled to the manufacturer constants (recovered from your own
+hardware), that's still out of scope to host or discuss here beyond the
+generic decrypt path already in the README.
 
 ## Reporting a concern
 
-If you find something here that goes beyond this scope, or a real
-vulnerability that could affect other AT-4N-868 owners (not just "the rolling
-code isn't AES-256", which is a known, accepted limitation of this device
-class), please open a GitHub issue or contact the maintainer directly rather
-than posting exploit details publicly.
+Something beyond this scope, or a real vulnerability affecting other
+AT-4N-868 owners (not just "the rolling code isn't AES-256" — a known,
+accepted limitation of this device class): open a GitHub issue or contact
+the maintainer directly, not a public exploit writeup.
 
-This project does not accept vulnerability reports for third-party products
-(e.g. Flipper Zero itself) — report those to the respective vendor.
+No vulnerability reports for third-party products (e.g. Flipper Zero) —
+report those to their vendor.
