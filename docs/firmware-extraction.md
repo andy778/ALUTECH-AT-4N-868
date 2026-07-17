@@ -64,6 +64,15 @@ JP1            probe
 Keep the leads short — SWD is happier at the lower adapter clock speeds if the
 wiring is long.
 
+![JP1 wired to a CMSIS-DAP probe](jp1_swd_wiring.jpg)
+
+Verified working setup: fob's JP1 header wired to a generic CMSIS-DAP probe
+clone (USB ID `c251:f001`) via four jumper wires (`V`/`D`/`CL`/`G`); the
+5th wire (`NR`/NRST, black connector dangling loose) was left unconnected
+for this session and wasn't needed. Visible on the fob's PCB: the `CR2016*2`
+silkscreen confirming the power-supply finding that this unit takes two
+stacked CR2016 cells rather than the single CR2032 the manual specifies.
+
 ## 4. Read the protection state first
 
 Before trying to dump anything, check the **option bytes / RDP (read-out
