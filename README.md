@@ -25,13 +25,13 @@ Reverse engineering a garage door remote key fob.
 
 ## Steps
 - [x] Decode the protocol
+- [ ] Decode sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
 - [x] Create a C rtl_433 decoder — done in the [fork](https://github.com/andy778/rtl_433/blob/master/src/devices/alutech_at_4n.c)
+- [ ] Add samples to [rtl_433 tests](https://github.com/merbanan/rtl_433_tests)
 - [ ] Submit the decoder upstream to [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices)
 - [x] Attempt firmware extraction over SWD — RDP confirmed enabled, blocked
 - [x] Search SRAM for the rainbow table — negative result
 - [ ] Behavioral replay / rolling-code resync analysis with Flipper Zero
-- [ ] Decode sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
-- [ ] Add samples to [rtl_433 tests](https://github.com/merbanan/rtl_433_tests)
 
 ## Datasheets
 
