@@ -141,6 +141,18 @@ Decrypted field layout (after running the cipher over the bit-reversed payload):
 The cipher and field layout were ported from the Flipper Zero project
 (`lib/subghz/protocols/alutech_at_4n.c`).
 
+## Firmware extraction attempt
+
+Tried dumping the PY32F002A's firmware over SWD per
+[docs/firmware-extraction.md](docs/firmware-extraction.md) (pyOCD + Puya's
+official DFP). The debug port works fine — the core halts, and SRAM/core
+registers read back normally (CPUID `0x410cc601` confirms genuine ARM
+Cortex-M0+ silicon) — but **reads into the flash address range are rejected
+outright**, not just blank. That's **read-out protection (RDP) enabled** on
+production units, not a probe or wiring problem. Non-invasive firmware
+extraction is a dead end on this hardware; the protocol analysis in this repo
+is entirely RF-based and doesn't depend on it.
+
 ## Images
 ![front](front.jpg)
 ![back](back.jpg)
