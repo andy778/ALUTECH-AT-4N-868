@@ -10,9 +10,9 @@ Reverse engineering a garage door remote key fob.
 * Create a flex decoder `alutech.conf` based on [rtl_433 conf](https://github.com/merbanan/rtl_433/tree/master/conf) examples.
 * Create a C version and merge into [rtl_433 devices](https://github.com/merbanan/rtl_433/tree/master/src/devices). → Done: lives in the [`andy778/rtl_433` fork](https://github.com/andy778/rtl_433/blob/master/src/devices/alutech_at_4n.c), pending upstream.
 * Open the garage door with a Flipper? Flipper can **decode/read** the frame (built-in `alutech_at_4n` protocol), but can't clone/replay it without the manufacturer rainbow table.
-* **Not a Microchip HCS301 / KeeLoq.** No IC markings, proprietary "Alutech AT-4N" scheme.
-  * A unit from Aliexpress has U1 = Arm Cortex-M0+ (PUYA PY32F002A), custom firmware — consistent with a bespoke rolling code.
-  * Confirmed by [Flipper's `alutech_at_4n.c`](https://github.com/flipperdevices/flipperzero-firmware/blob/dev/lib/subghz/protocols/alutech_at_4n.c) decoder: 72-bit frame, CRC-8 poly `0x31`, custom obfuscation + rainbow table.
+* **Proprietary "Alutech AT-4N" scheme**, no IC markings.
+  * Unit from Aliexpress: U1 = Arm Cortex-M0+ (PUYA PY32F002A), custom firmware.
+  * Matches [Flipper's `alutech_at_4n.c`](https://github.com/flipperdevices/flipperzero-firmware/blob/dev/lib/subghz/protocols/alutech_at_4n.c) decoder: 72-bit frame, CRC-8 poly `0x31`, custom obfuscation + rainbow table.
 
 ## Steps
 [ ] Decode sampling rates with [I/Q Spectrogram & Pulsedata](https://triq.org/pdv3/)
@@ -24,8 +24,6 @@ Reverse engineering a garage door remote key fob.
 | No  | Description    | IC                                                                                                                            |
 | --- | ---            | ---                                                                                                                           |
 | U1  | Arm Cortex-M0+ (custom Alutech firmware) | [PUYA F002AW15 SH6HN1B](https://www.puyasemi.com/download_path/%E6%95%B0%E6%8D%AE%E6%89%8B%E5%86%8C/MCU%20%E5%BE%AE%E5%A4%84%E7%90%86%E5%99%A8/PY32F002A_Datasheet_V0.2.pdf)|
-
-> ~~Microchip HCS301~~ — ruled out, not KeeLoq.
 
 ## Power supply
 
@@ -60,7 +58,6 @@ From the datasheet and captures:
 * ~4150 µs break follows.
 * `1` = ~370 µs short pulse. `0` = ~760 µs long pulse.
 * Symbol period ~1123 µs.
-* [HCS200](https://github.com/merbanan/rtl_433/blob/master/src/devices/hcs200.c) fails here — not a bug, KeeLoq is 66 bits, this is **72**. Never an HCS device.
 * New Cortex-M0+ units repeat the message 6x, not 3x.
 
 ## Protocol match (Flipper Zero)
