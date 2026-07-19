@@ -9,6 +9,9 @@ MCU: **PUYA PY32F002A**, Arm Cortex-M0+ (marked `Puya` on U1). Flash at
 Register addresses below ("RM §x.y") are from the
 [PY32F002A Reference Manual V1.0](https://download.py32.org/ReferenceManual/en/PY32F002A%20Reference%20manual%20v1.0_EN.pdf).
 
+Sections 1–8 cover this (newer) unit. **Older units use a different, non-ARM
+chip — see §9, SWD does not apply to them.**
+
 ## 1. Hardware
 
 | Item | Notes |
@@ -206,3 +209,53 @@ Two equally plausible reasons, can't distinguish without more work:
 Settling it needs a live capture during an actual keypress — same wall as
 before: no flash read means no way to find the routine to breakpoint. Out of
 scope per [SECURITY.md](../SECURITY.md).
+
+## 9. Older units — different chip, SWD doesn't apply (negative result)
+
+Sections 1–8 are all the **newer** PY32F002A unit. An **older** board
+(`back.jpg`/`front.jpg` in this repo — silkscreen `ELTYKQ71AA`, dated
+2017.06.03) uses a different chip entirely. SWD access does not apply to it.
+
+**Board identification.** 5-pad header labelled `PG1` on the front silkscreen
+(between the K1/K2 buttons), square pad = pin 1 — same 5-pin convention as
+JP1 on the newer board, different physical board. Confirmed by multimeter:
+pad 4 = GND (continuity to battery negative), pad 5 = VCC (~3.04V, single
+CR2032 — this board predates the 2×CR2016 mismatch found on the newer unit).
+Board is unpowered at rest — a button press mechanically closes the
+battery-to-VCC connection (zero quiescent draw), so measurements/debug
+attempts need a button held or VCC wired directly.
+
+![PG1 header location on the older board](pg1_board_context.jpg)
+![PG1 pads numbered 1-5](pg1_pads_numbered.jpg)
+
+**Chip identification failed.** 8-pin SOIC, cleaned with IPA and inspected
+at 5x magnification under multiple lighting angles — no recoverable part
+marking. Genuinely blank, not just worn.
+
+**Why it's not the PY32F002B** (same product line, SOP8 package, would have
+been the next guess): 2017 predates Puya's PY32 MCU line, which reached
+market around 2021. Confirmed independently — the physical GND pin position
+on this board doesn't match the PY32F002B SOP8 datasheet pinout (GND is
+pin 8 there). Different chip family, not just a different Puya part.
+
+**SWD exhausted.** Same verified probe (CMSIS-DAP `c251:f001`) and pyOCD,
+generic `cortex_m` target (no vendor pack — chip is unknown):
+
+```bash
+sudo pyocd cmd -t cortex_m -f 100000 -c "reset halt" -c "read32 0xE000ED00 4"
+sudo pyocd cmd -t cortex_m -M under-reset -f 100000 -c "reset halt" -c "read32 0xE000ED00 4"
+```
+
+Tried every SWDIO/SWCLK pairing among the 3 unidentified header pads, both
+with a normal connect and with `-M under-reset` (third pad wired to the
+probe's NRST line each time). **Every combination: `SWD/JTAG communication
+failure (No ACK)`.** Power confirmed correct throughout (LED lit).
+
+JTAG not testable either — no exposed CLI flag, and standard JTAG needs 4
+signal wires (TCK/TMS/TDI/TDO); only 3 unidentified pads are available.
+
+**Conclusion:** CMSIS-DAP/pyOCD are ARM-only tools. Consistent, total "No
+ACK" across every reasonable pin combination, on hardware with confirmed-good
+power wiring, points to this chip not being ARM/SWD-capable at all rather
+than a wiring problem. Closed without a positively identified chip and a
+protocol-appropriate tool — out of scope for this repo without that.

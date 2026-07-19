@@ -15,6 +15,10 @@ Reverse engineering a garage door remote key fob.
 * **New keyfobs protect the rainbow table.** Read-out protection (RDP) is
   enabled on production units — SWD can't read flash, so the six constants
   can't be dumped. See [docs/firmware-extraction.md](docs/firmware-extraction.md).
+* **Older units use a different, non-ARM chip** (2017-dated board, unmarked
+  8-pin SOIC) — SWD doesn't apply to them at all, confirmed across every
+  reasonable pin combination. Firmware access on those is a separate, closed
+  dead end, not the same RDP block as the newer units.
 * **Same six constants across the whole AT-4N line** — not per-device. One
   shared secret for the whole product line.
 * **Flipper Zero ships the table, AES-encrypted.** Decryptable only with
